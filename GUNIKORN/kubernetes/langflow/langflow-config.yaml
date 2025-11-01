@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: langflow-config
+data:
+  LANGFLOW_IMAGE: "ai-langflow"
+  LANGFLOW_BUILT_IMAGE: "langflow/langflow:built"
+  LANGFLOW_SERVICE: "langflow"
+  LANGFLOW_HOST: "0.0.0.0"
+  LANGFLOW_PORT: "7860"
+  LANGFLOW_REDIRECT_PORT: "7860"
+  LANGFLOW_VERSION: "tis-1.0.0"
+  LANGFLOW_CONFIG_DIR: "/app/langflow"
+  LANGFLOW_COMPONENTS_PATH: "/app/tis_components"
+  #POSTGRES_DB: "langflow_db"
+  POSTGRES_DB_NAME: "langflow_db"
+  LANGFLOW_LOG_FILE: "logs/langflow.log"
+  LANGFLOW_LOG_LEVEL: "debug"
+  DO_NOT_TRACK: "True"
+  LANGFLOW_CACHE_TYPE: "memory"
+  LANGFLOW_CREATE_STARTER_PROJECTS: "False"
+  LANGFLOW_UPDATE_STARTER_PROJECTS: "False"
+  LANGFLOW_AUTO_LOGIN: "False"
+  LANGFLOW_SUPERUSER: "service_user"
+  LANGFLOW_USERNAME: "langflow"
+
+  LANGFLOW_DEV: "False"
+  LANGFLOW_EVENT_DELIVERY: "direct"
+  # LANGFLOW_WORKERS: "1"  <-- This line is replaced
+  WEB_CONCURRENCY: "1"
+  WEB_THREADS: "1"
+

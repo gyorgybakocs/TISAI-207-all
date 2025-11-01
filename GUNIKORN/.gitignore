@@ -1,0 +1,7 @@
+.idea/
+*.zip
+
+.benchmark_api_key
+.benchmark_flow_id
+.optimal_workers
+.optimal_threads
