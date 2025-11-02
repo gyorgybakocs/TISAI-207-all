@@ -13,7 +13,6 @@ RUN pip install --no-cache-dir \
       "gunicorn>=21" \
       "gevent" \
       "psycopg2cffi" \
-      "uvicorn[standard]>=0.30" \
       "httptools" \
       "uvloop"
 
