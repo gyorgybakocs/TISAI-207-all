@@ -58,31 +58,28 @@ spec:
           args:
             - >
               exec /app/.venv/bin/python -m gunicorn "langflow.main:create_app()"
-              -c /app/gunicorn_config/config.py
               -k uvicorn.workers.UvicornWorker
-              --preload
               --workers ${WEB_CONCURRENCY:-1}
               --threads ${WEB_THREADS:-1}
               --bind 0.0.0.0:${LANGFLOW_PORT:-7860}
-              --timeout 120
-              --keep-alive 5
+              --timeout ${GUNICORN_TIMEOUT:-120}
+              --keep-alive ${GUNICORN_KEEPALIVE:-5}
+              --graceful-timeout ${GUNICORN_GRACEFUL:-30}
+              --backlog ${GUNICORN_BACKLOG:-2048}
               --log-level info
               --access-logfile -
           ports:
             - containerPort: 7860
               protocol: TCP
-          # This waits for the app to actually serve HTTP 200 on /docs
           readinessProbe:
             httpGet:
-              path: /
+              path: /docs
               port: 7860
-            initialDelaySeconds: 10 # Give it time to start
-            periodSeconds: 5
-            timeoutSeconds: 3
-            failureThreshold: 10 # Allow for a longer startup
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
           volumeMounts:
-            - name: gunicorn-config
-              mountPath: /app/gunicorn_config
             - name: tis-components
               mountPath: /app/tis_components
             - name: flows-data
@@ -92,9 +89,6 @@ spec:
             - name: init-scripts-python
               mountPath: /app/init/python
       volumes:
-        - name: gunicorn-config
-          configMap:
-            name: gunicorn-config-cm
         - name: tis-components
           hostPath:
             path: /workspace/kubernetes/langflow/src/tis_components/

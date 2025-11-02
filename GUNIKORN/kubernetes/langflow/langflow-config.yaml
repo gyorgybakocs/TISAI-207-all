@@ -26,7 +26,11 @@ data:
 
   LANGFLOW_DEV: "False"
   LANGFLOW_EVENT_DELIVERY: "direct"
-  # LANGFLOW_WORKERS: "1"  <-- This line is replaced
+
+  # Gunicorn / worker tuning
   WEB_CONCURRENCY: "1"
   WEB_THREADS: "1"
-
+  GUNICORN_TIMEOUT: "120"
+  GUNICORN_KEEPALIVE: "5"
+  GUNICORN_GRACEFUL: "30"
+  GUNICORN_BACKLOG: "2048"

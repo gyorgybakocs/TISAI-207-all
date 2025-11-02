@@ -146,8 +146,6 @@ apply-instances-config:
 	@echo "----------------- Applying Langflow ConfigMaps and Secrets -------------------"
 	kubectl apply -f kubernetes/langflow/langflow-config.yaml
 	kubectl apply -f kubernetes/langflow/langflow-secret.yaml
-	@echo "----------------- Applying Gunicorn Config -------------------" # <-- ADDED
-	kubectl apply -f kubernetes/langflow/gunicorn-config-cm.yaml       # <-- ADDED
 
 # ---------------------------------------------------------------------------------
 # ----------------------------------- BUILD k8s -----------------------------------
@@ -304,8 +302,6 @@ logs:
 	@echo "----------------- Following logs for Postgres pod -------------------"
 	@kubectl logs -f $$(kubectl get pods -l app=postgres -o jsonpath='{.items[0].metadata.name}')
 
-
-
 init-langflow-users:
 	@echo "----------------- Executing init scripts inside the Langflow container -------------------"
 	@LANGFLOW_POD=$$(kubectl get pods -l app=langflow -o jsonpath='{.items[0].metadata.name}'); \
@@ -368,17 +364,3 @@ run-benchmark:
 	echo "--- Benchmark Job completed successfully. Retrieving final result. ---"; \
 	minikube ssh 'sudo cat /app/.optimal_workers' > .optimal_workers; \
 	echo "Optimal worker count saved to local .optimal_workers file."
-
-monitor-db:
-	@echo "--- Live Postgres connection monitor (langflow_db) ---"
-	@PG_POD=$$(kubectl get pod -l app=postgres -o jsonpath='{.items[0].metadata.name}'); \
-	if [ -z "$$PG_POD" ]; then \
-		echo "❌ Postgres pod not found."; exit 1; \
-	fi; \
-	echo "Monitoring connections from pod: $$PG_POD"; \
-	echo "Press Ctrl+C to stop."; \
-	kubectl exec -it $$PG_POD -- bash -c '\
-		while true; do \
-			psql -U "$$POSTGRES_USER" -d "$$POSTGRES_DB" -tA -c "SELECT to_char(now(), '\''HH24:MI:SS'') || '\'' | active='\'' || count(*) FROM pg_stat_activity WHERE datname='\''langflow_db'\'';" 2>/dev/null; \
-			sleep 1; \
-		done' | awk '{print "[PG-CONNS] " $$0}'
