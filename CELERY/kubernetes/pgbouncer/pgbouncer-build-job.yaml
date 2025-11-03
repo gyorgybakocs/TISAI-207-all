@@ -1,0 +1,48 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: pgbouncer-build
+spec:
+  backoffLimit: 0
+  completions: 1
+  parallelism: 1
+  template:
+    spec:
+      containers:
+        - name: kaniko
+          image: gcr.io/kaniko-project/executor:latest
+          args:
+            - --force
+            - --dockerfile=kubernetes/pgbouncer/docker/Dockerfile
+            - --context=/workspace
+            - --destination=$(REGISTRY_URL)/$(PGBOUNCER_BUILT_IMAGE)
+            - --build-arg=PGBOUNCER_PORT=$(PGBOUNCER_PORT)
+            - --build-arg=IMAGE_FROM_REGISTRY=$(REGISTRY_URL)/$(PGBOUNCER_BUILT_IMAGE)
+            - --insecure
+            - --skip-tls-verify
+          securityContext:
+            runAsUser: 0
+            privileged: true
+          workingDir: /workspace
+          env:
+            - name: PGBOUNCER_BUILT_IMAGE
+              valueFrom:
+                configMapKeyRef:
+                  name: pgbouncer-config
+                  key: PGBOUNCER_BUILT_IMAGE
+            - name: PGBOUNCER_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: pgbouncer-config
+                  key: PGBOUNCER_PORT
+            - name: REGISTRY_URL
+              value: "registry.default.svc.cluster.local:5000"
+          volumeMounts:
+            - name: workspace
+              mountPath: /workspace
+      restartPolicy: Never
+      volumes:
+        - name: workspace
+          hostPath:
+            path: /workspace
+            type: Directory

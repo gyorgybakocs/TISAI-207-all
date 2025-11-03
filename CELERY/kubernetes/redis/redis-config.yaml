@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-config
+data:
+  REDIS_IMAGE: "ai-redis"
+  REDIS_VERSION: "tis-1.0.0"
+  REDIS_BUILT_IMAGE: "redis/redis:built"
+  REDIS_SERVICE: "redis"
+  REDIS_HOST: "redis"
+  REDIS_PORT: "6379"
+  REDIS_REDIRECT_PORT: "6380"

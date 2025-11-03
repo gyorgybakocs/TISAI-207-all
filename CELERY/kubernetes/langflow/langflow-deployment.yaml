@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: langflow
+  labels:
+    app: langflow
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: langflow
+  template:
+    metadata:
+      labels:
+        app: langflow
+    spec:
+      containers:
+        - name: langflow
+          image: ${REGISTRY_HOST}:30500/${BUILT_IMAGE}
+          imagePullPolicy: Always
+          envFrom:
+            - configMapRef:
+                name: langflow-config
+            - secretRef:
+                name: langflow-secret
+          env:
+            - name: POSTGRES_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: langflow-config
+                  key: POSTGRES_DB_NAME
+            - name: POSTGRES_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: postgres-config
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+            - name: POSTGRES_HOST
+              value: "pgbouncer"
+            - name: POSTGRES_PORT
+              value: "6432"
+            - name: LANGFLOW_DATABASE_URL
+              value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB_NAME)"
+          command: [ "/bin/sh","-lc" ]
+          args:
+            - >
+              exec /app/.venv/bin/python -m gunicorn "langflow.main:create_app()"
+              -k uvicorn.workers.UvicornWorker
+              --workers ${WEB_CONCURRENCY:-1}
+              --threads ${WEB_THREADS:-1}
+              --bind 0.0.0.0:${LANGFLOW_PORT:-7860}
+              --timeout ${GUNICORN_TIMEOUT:-120}
+              --keep-alive ${GUNICORN_KEEPALIVE:-5}
+              --graceful-timeout ${GUNICORN_GRACEFUL:-30}
+              --backlog ${GUNICORN_BACKLOG:-2048}
+              --log-level info
+              --access-logfile -
+          ports:
+            - containerPort: 7860
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /docs
+              port: 7860
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          volumeMounts:
+            - name: tis-components
+              mountPath: /app/tis_components
+            - name: flows-data
+              mountPath: /app/flows
+            - name: logs-data
+              mountPath: /app/logs
+            - name: init-scripts-python
+              mountPath: /app/init/python
+      volumes:
+        - name: tis-components
+          hostPath:
+            path: /workspace/kubernetes/langflow/src/tis_components/
+            type: Directory
+        - name: flows-data
+          persistentVolumeClaim:
+            claimName: langflow-flows-pvc
+        - name: logs-data
+          persistentVolumeClaim:
+            claimName: langflow-logs-pvc
+        - name: init-scripts-python
+          hostPath:
+            path: /workspace/kubernetes/langflow/init/python/
+            type: Directory

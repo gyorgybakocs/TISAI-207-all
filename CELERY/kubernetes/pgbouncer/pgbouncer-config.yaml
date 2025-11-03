@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pgbouncer-config
+data:
+  PGBOUNCER_IMAGE: "edoburu/pgbouncer:v1.24.1-p1"
+  PGBOUNCER_BUILT_IMAGE: "pgbouncer/pgbouncer:built"
+  PGBOUNCER_SERVICE: "pgbouncer"
+  PGBOUNCER_PORT: "6432"
+  PGBOUNCER_REDIRECT_PORT: "6433"
+  PGBOUNCER_VERSION: "tis-1.0.0"
