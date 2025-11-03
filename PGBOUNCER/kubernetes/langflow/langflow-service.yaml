@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ${SERVICE}
+spec:
+  type: NodePort
+  selector:
+    app: langflow
+  ports:
+    - protocol: TCP
+      port: ${PORT}
+      targetPort: ${PORT}

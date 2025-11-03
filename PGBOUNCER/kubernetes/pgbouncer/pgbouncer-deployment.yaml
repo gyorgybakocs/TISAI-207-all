@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pgbouncer
+spec:
+  selector:
+    matchLabels:
+      app: pgbouncer
+  template:
+    metadata:
+      labels:
+        app: pgbouncer
+    spec:
+      containers:
+        - name: pgbouncer
+          image: ${REGISTRY_HOST}:30500/${BUILT_IMAGE}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: ${PORT}
