@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: langflow-config
+    name: langflow-web-config
 data:
   LANGFLOW_IMAGE: "ai-langflow"
   LANGFLOW_BUILT_IMAGE: "langflow/langflow:built"

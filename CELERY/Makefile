@@ -1,9 +1,9 @@
 BASE_NAMES = POSTGRES LANGFLOW REDIS
 DOCKERHUB_BASE_NAMES = PGBOUNCER
 SERVICES = POSTGRES LANGFLOW PGBOUNCER REDIS
-DEPLOYS = POSTGRES PGBOUNCER LANGFLOW REDIS
-PORTFORWARD = POSTGRES LANGFLOW PGBOUNCER REDIS
-PODS = postgres langflow pgbouncer redis
+DEPLOYS = POSTGRES PGBOUNCER LANGFLOW-WEB LANGFLOW-WORKER REDIS
+PORTFORWARD = POSTGRES LANGFLOW-WEB PGBOUNCER REDIS
+PODS = postgres langflow-web langflow-worker pgbouncer redis
 DEFAULT_WORKERS ?= 1
 BENCHMARK_TYPE ?= hey
 
@@ -163,6 +163,8 @@ apply-instances-config:
 	@echo "----------------- Applying Langflow Persistent Volume Claim -------------------"
 	kubectl apply -f kubernetes/langflow/langflow-pvc.yaml
 	@echo "----------------- Applying Langflow ConfigMaps and Secrets -------------------"
+	kubectl apply -f kubernetes/langflow-web/langflow-web-config.yaml
+	kubectl apply -f kubernetes/langflow-worker/langflow-worker-config.yaml
 	kubectl apply -f kubernetes/langflow/langflow-config.yaml
 	kubectl apply -f kubernetes/langflow/langflow-secret.yaml
 	@echo "----------------- Applying PgBouncer ConfigMaps -------------------"
