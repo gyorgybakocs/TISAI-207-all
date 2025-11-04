@@ -61,7 +61,6 @@ spec:
               --access-logfile -
           ports:
             - containerPort: 7860
-              protocol: TCP
           readinessProbe:
             httpGet:
               path: /docs

@@ -318,7 +318,7 @@ check-workers:
 	echo "--------------------------------------------------------------------"; \
 	CONFIGURED_WORKERS=$$(kubectl get configmap langflow-config -o jsonpath='{.data.WEB_CONCURRENCY}' 2>/dev/null || true); \
 	if [ -z "$$CONFIGURED_WORKERS" ]; then CONFIGURED_WORKERS="Not Set"; fi; \
-	LANGFLOW_POD=$$(kubectl get pods -l app=langflow -o jsonpath='{.items[?(@.status.phase=="Running")].metadata.name}' 2>/dev/null | awk '{print $$1}'); \
+	LANGFLOW_POD=$$(kubectl get pods -l app=langflow-web -o jsonpath='{.items[?(@.status.phase=="Running")].metadata.name}' 2>/dev/null | awk '{print $$1}'); \
 	if [ -z "$$LANGFLOW_POD" ]; \
 	then \
 		echo "Langflow pod not found."; \
@@ -348,7 +348,7 @@ logs:
 
 init-langflow-users:
 	@echo "----------------- Executing init scripts inside the Langflow container -------------------"
-	@LANGFLOW_POD=$$(kubectl get pods -l app=langflow -o jsonpath='{.items[0].metadata.name}'); \
+	@LANGFLOW_POD=$$(kubectl get pods -l app=langflow-web -o jsonpath='{.items[0].metadata.name}'); \
 	echo "--- Creating /app/tmp directory inside the pod ---"; \
 	kubectl exec "$${LANGFLOW_POD}" -- mkdir -p /app/tmp; \
 	echo "--- Running init_service_user.py in pod: $${LANGFLOW_POD} ---"; \
@@ -359,7 +359,7 @@ init-langflow-users:
 
 create-test-flow:
 	@echo "--- Creating test flow for benchmarking ---"
-	@LANGFLOW_POD=$$(kubectl get pods -l app=langflow -o jsonpath='{.items[0].metadata.name}'); \
+	@LANGFLOW_POD=$$(kubectl get pods -l app=langflow-web -o jsonpath='{.items[0].metadata.name}'); \
 	OUTPUT=$$(kubectl exec "$${LANGFLOW_POD}" -- python /app/init/python/init_benchmark_flow.py); \
 	echo "$$OUTPUT"; \
 	\

@@ -4,10 +4,10 @@ metadata:
   name: langflow-worker-config
 data:
   LANGFLOW_IMAGE: "ai-langflow"
-  LANGFLOW_BUILT_IMAGE: "langflow/langflow:built"
+  LANGFLOW-WORKER_BUILT_IMAGE: "langflow/langflow:built"
   LANGFLOW_SERVICE: "langflow"
   LANGFLOW_HOST: "0.0.0.0"
-  LANGFLOW_PORT: "7860"
+  LANGFLOW-WORKER_PORT: "7860"
   LANGFLOW_REDIRECT_PORT: "7860"
   LANGFLOW_VERSION: "tis-1.0.0"
   LANGFLOW_CONFIG_DIR: "/app/langflow"

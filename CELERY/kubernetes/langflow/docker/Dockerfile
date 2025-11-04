@@ -9,8 +9,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir "gunicorn>=21" "uvicorn[standard]>=0.30" "httptools" "uvloop"
-
-ENV PATH="/app/.venv/bin:${PATH}"
+RUN pip install --no-cache-dir "gunicorn>=21" "uvicorn[standard]>=0.30" "httptools" "uvloop" "celery[redis]>=5"
 
 USER user

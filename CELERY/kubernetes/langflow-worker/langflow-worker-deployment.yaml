@@ -51,7 +51,7 @@ spec:
               exec /app/.venv/bin/python -m celery
               -A langflow.worker worker
               --loglevel=info
-              --concurrency=${CELERY_CONCURRENCY:-4} # Ezt a configmapból vesszük
+              --concurrency=${CELERY_CONCURRENCY:-4}
           volumeMounts:
             - name: tis-components
               mountPath: /app/tis_components
