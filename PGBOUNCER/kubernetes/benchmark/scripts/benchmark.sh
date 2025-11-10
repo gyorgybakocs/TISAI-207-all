@@ -72,9 +72,10 @@ for workers in $WORKER_COUNTS; do
 
   kubectl rollout restart deployment/langflow
   echo "Waiting for rollout to complete..."
-  kubectl rollout status deployment/langflow --timeout=180s
+#  kubectl rollout status deployment/langflow --timeout=180s
   echo "Waiting for pod to be ready..."
-  kubectl wait --for=condition=ready pod -l app=langflow --timeout=60s
+  kubectl wait --for=condition=ready pod -l app=langflow --timeout=180s
+
   echo "Giving Langflow extra time to initialize..."
   sleep 15
 
