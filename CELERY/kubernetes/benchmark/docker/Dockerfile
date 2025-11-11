@@ -5,8 +5,7 @@ RUN pip install locust
 
 WORKDIR /app
 
-COPY ../scripts/benchmark.sh .
-COPY ../scripts/locustfile.py .
-RUN chmod +x benchmark.sh
+COPY ../scripts/test_celery_flow.sh .
+RUN chmod +x test_celery_flow.sh
 
 ENTRYPOINT ["/bin/sh"]

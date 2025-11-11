@@ -4,8 +4,6 @@ SERVICES = POSTGRES LANGFLOW PGBOUNCER REDIS
 DEPLOYS = POSTGRES PGBOUNCER LANGFLOW-WEB LANGFLOW-WORKER REDIS
 PORTFORWARD = POSTGRES LANGFLOW-WEB PGBOUNCER REDIS
 PODS = postgres langflow-web langflow-worker pgbouncer redis
-DEFAULT_WORKERS ?= 1
-BENCHMARK_TYPE ?= hey
 
 # ---------------------------------------------------------------------------------
 # ---------------------------- get base imaged from aws ---------------------------
@@ -375,42 +373,37 @@ create-test-flow:
 	echo "$$API_KEY" > .benchmark_api_key; \
 	echo "Test flow created. Flow ID saved to .benchmark_flow_id, API key saved to .benchmark_api_key"
 
-run-benchmark:
-	@echo "--- Applying Benchmark RBAC and running Job ---"
+# ---------------------------------------------------------------------------------
+# -------------------------------- CELERY TESTING ---------------------------------
+# ---------------------------------------------------------------------------------
+
+test-celery:
+	@echo "--- Applying Benchmark RBAC (if not already applied) ---"
 	@kubectl apply -f kubernetes/benchmark/rbac.yaml
-	@kubectl delete job langflow-benchmark --ignore-not-found=true
+	@echo "--- Deleting previous test job if exists ---"
+	@kubectl delete job langflow-celery-test --ignore-not-found=true
+	@echo "--- Starting Celery Flow Demonstration Test ---"
 	@export REGISTRY_HOST=$$(minikube ip); \
-	export FLOW_ID=$$(kubectl get configmap langflow-config -o jsonpath='{.data.BENCHMARK_FLOW_ID}'); \
-    export API_KEY=$$(kubectl get secret langflow-secret -o jsonpath='{.data.BENCHMARK_API_KEY}' | base64 --decode); \
-    export BENCHMARK_TYPE=$(BENCHMARK_TYPE); \
-    export FIXED_WORKER_COUNT=$(FIXED_WORKER_COUNT); \
-	envsubst < kubernetes/benchmark/benchmark-job.yaml | kubectl apply -f -
-	@echo "--- Waiting for benchmark pod to start..."
-	@BENCHMARK_POD_NAME=""; \
-	while [ -z "$$BENCHMARK_POD_NAME" ]; do \
+	envsubst < kubernetes/benchmark/test-celery-job.yaml | kubectl apply -f -
+	@echo "--- Waiting for test pod to start..."
+	@TEST_POD_NAME=""; \
+	while [ -z "$$TEST_POD_NAME" ]; do \
 		echo -n "."; \
 		sleep 1; \
-		BENCHMARK_POD_NAME=$$(kubectl get pods -l job-name=langflow-benchmark -o jsonpath='{.items[0].metadata.name}' 2>/dev/null); \
+		TEST_POD_NAME=$$(kubectl get pods -l job-name=langflow-celery-test -o jsonpath='{.items[0].metadata.name}' 2>/dev/null); \
 	done; \
-	echo "\nWaiting for benchmark pod to be ready..."; \
-    kubectl wait --for=condition=ready pod/$$BENCHMARK_POD_NAME --timeout=120s; \
-    echo "Benchmark pod is ready: $$BENCHMARK_POD_NAME. Streaming logs in real-time..."; \
-    kubectl logs -f "$$BENCHMARK_POD_NAME"; \
-	\
-	echo "--- Log stream finished. Verifying final Job status... ---"; \
-	sleep 5; \
-	JOB_STATUS=$$(kubectl get job langflow-benchmark -o jsonpath='{.status.conditions[?(@.type=="Complete")].status}'); \
+	echo "\n✅ Test pod started: $$TEST_POD_NAME"; \
+	echo "--- Waiting for pod to be ready..."; \
+	kubectl wait --for=condition=ready pod/$$TEST_POD_NAME --timeout=60s; \
+	echo "--- Streaming test logs in real-time..."; \
+	echo ""; \
+	kubectl logs -f "$$TEST_POD_NAME"; \
+	echo ""; \
+	echo "--- Test Job completed. Checking final status... ---"; \
+	sleep 2; \
+	JOB_STATUS=$$(kubectl get job langflow-celery-test -o jsonpath='{.status.conditions[?(@.type=="Complete")].status}'); \
 	if [ "$$JOB_STATUS" != "True" ]; then \
-		echo "!!! Benchmark job did not complete successfully. Check logs above for errors. !!!"; \
+		echo "⚠️  Test job did not complete successfully."; \
 		exit 1; \
 	fi; \
-	\
-	echo "--- Benchmark Job completed successfully. Retrieving final result. ---"; \
-	minikube ssh 'sudo cat /app/.optimal_workers' > .optimal_workers; \
-	echo "Optimal worker count saved to local .optimal_workers file."
-
-monitor-db:
-	@bash kubernetes/benchmark/monitoring/db.sh
-
-monitor-pgbouncer:
-	@bash kubernetes/benchmark/monitoring/bouncer.sh
+	echo "✅ Celery Flow Test completed successfully!"

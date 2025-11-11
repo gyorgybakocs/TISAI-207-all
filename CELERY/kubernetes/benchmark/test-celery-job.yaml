@@ -1,20 +1,15 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: langflow-benchmark
+  name: langflow-celery-test
 spec:
   template:
     spec:
       serviceAccountName: benchmark-sa
       containers:
-        - name: benchmark
+        - name: celery-test
           image: ${REGISTRY_HOST}:30500/benchmark:latest
           imagePullPolicy: Always
-          command: ["/app/benchmark.sh"]
-          args:
-            - "${FLOW_ID}"
-            - "${API_KEY}"
-            - "${BENCHMARK_TYPE}"
-            - "${FIXED_WORKER_COUNT}"
+          command: ["/app/test_celery_flow.sh"]
       restartPolicy: Never
   backoffLimit: 1
