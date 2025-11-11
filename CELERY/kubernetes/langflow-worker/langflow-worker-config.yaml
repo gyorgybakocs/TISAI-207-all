@@ -25,7 +25,7 @@ data:
   LANGFLOW_USERNAME: "langflow"
 
   LANGFLOW_DEV: "False"
-  LANGFLOW_EVENT_DELIVERY: "direct"
+  LANGFLOW_EVENT_DELIVERY: "polling"
 
   # Gunicorn / worker tuning
   WEB_CONCURRENCY: "1"

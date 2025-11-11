@@ -35,13 +35,13 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 START_TIME=$(date +%s.%N)
 
 RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
-    "${LANGFLOW_URL}/api/v1/run/${FLOW_ID}?stream=false" \
+    "${LANGFLOW_URL}/api/v1/build/${FLOW_ID}/flow?event_delivery=polling" \
     -H "x-api-key: ${API_KEY}" \
     -H "Content-Type: application/json" \
     -d '{
-        "input_value": "Hello from Celery test!",
-        "input_type": "text",
-        "output_type": "text"
+      "inputs": {
+        "input_value": "Hello from Celery test!"
+      }
     }')
 
 END_TIME=$(date +%s.%N)
@@ -60,12 +60,16 @@ echo "$BODY" | jq '.' 2>/dev/null || echo "$BODY"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 
-# Extract task_id if present (Celery returns task IDs)
-TASK_ID=$(echo "$BODY" | jq -r '.task_id // .id // empty' 2>/dev/null || echo "")
+JOB_ID=$(echo "$BODY" | jq -r '.job_id // empty')
 
-if [ -z "$TASK_ID" ]; then
-    echo "⚠️  No task_id found in response. Checking if task was created anyway..."
-    echo ""
+if [ -n "$JOB_ID" ]; then
+  echo "🔁 Polling events for job_id: $JOB_ID"
+  EVENTS=$(curl -s \
+    "${LANGFLOW_URL}/api/v1/build/${JOB_ID}/events?event_delivery=polling" \
+    -H "x-api-key: ${API_KEY}")
+  echo "$EVENTS" | jq '.' 2>/dev/null || echo "$EVENTS"
+else
+  echo "⚠️  No job_id returned from build endpoint."
 fi
 
 # === STEP 2: Check Redis Broker (DB 0) ===

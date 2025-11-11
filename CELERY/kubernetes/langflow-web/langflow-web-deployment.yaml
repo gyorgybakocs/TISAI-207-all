@@ -45,6 +45,25 @@ spec:
               value: "6432"
             - name: LANGFLOW_DATABASE_URL
               value: "postgresql://$(POSTGRES_USER):$(POSTGRES_PASSWORD)@$(POSTGRES_HOST):$(POSTGRES_PORT)/$(POSTGRES_DB_NAME)"
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-secret
+                  key: REDIS_PASSWORD
+            - name: LANGFLOW_CELERY_BROKER_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: langflow-web-config
+                  key: LANGFLOW_CELERY_BROKER_URL
+            - name: CELERY_BROKER_URL
+              value: "redis://:$(REDIS_PASSWORD)@$(LANGFLOW_CELERY_BROKER_URL)"
+            - name: LANGFLOW_CELERY_RESULT_BACKEND
+              valueFrom:
+                configMapKeyRef:
+                  name: langflow-web-config
+                  key: LANGFLOW_CELERY_RESULT_BACKEND
+            - name: CELERY_RESULT_BACKEND
+              value: "redis://:$(REDIS_PASSWORD)@$(LANGFLOW_CELERY_RESULT_BACKEND)"
           command: [ "/bin/sh","-lc" ]
           args:
             - >
